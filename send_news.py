@@ -29,15 +29,17 @@ def clean_html(html_text):
 def get_news_from_rss():
     """Fetch news from major news outlets RSS feeds"""
     world_feeds = {
-        'BBC': 'http://feeds.bbc.co.uk/news/world/rss.xml',
-        'Reuters': 'https://www.reutersagency.com/feed/?taxonomy=best-topics&output=rss',
-        'AP': 'https://apnews.com/hub/world-news/feed',
+        'BBC World': 'http://feeds.bbc.co.uk/news/world/rss.xml',
+        'CNN': 'http://rss.cnn.com/rss/cnn_world.rss',
+        'Guardian': 'https://www.theguardian.com/world/rss',
+        'Reuters': 'https://www.reuters.com/world',
     }
     
     tech_feeds = {
         'TechCrunch': 'http://feeds.feedburner.com/TechCrunch/',
         'TheVerge': 'https://www.theverge.com/rss/index.xml',
-        'ArsTechnica': 'https://feeds.arstechnica.com/arstechnica/index',
+        'Wired': 'https://www.wired.com/feed/rss',
+        'Ars Technica': 'https://feeds.arstechnica.com/arstechnica/index',
     }
     
     world_articles = []
@@ -47,30 +49,36 @@ def get_news_from_rss():
     for source, url in world_feeds.items():
         try:
             feed = feedparser.parse(url)
-            for entry in feed.entries[:3]:
-                summary = clean_html(entry.get('summary', 'No summary available'))
-                world_articles.append({
-                    'title': entry.get('title', 'No title'),
-                    'summary': summary,
-                    'link': entry.get('link', ''),
-                    'source': source
-                })
-        except:
+            if feed.entries:
+                for entry in feed.entries[:3]:
+                    summary = clean_html(entry.get('summary', '') or entry.get('description', ''))
+                    if summary:
+                        world_articles.append({
+                            'title': entry.get('title', 'No title'),
+                            'summary': summary,
+                            'link': entry.get('link', ''),
+                            'source': source
+                        })
+        except Exception as e:
+            print(f"Error fetching {source}: {e}")
             pass
     
     # Fetch tech news
     for source, url in tech_feeds.items():
         try:
             feed = feedparser.parse(url)
-            for entry in feed.entries[:3]:
-                summary = clean_html(entry.get('summary', 'No summary available'))
-                tech_articles.append({
-                    'title': entry.get('title', 'No title'),
-                    'summary': summary,
-                    'link': entry.get('link', ''),
-                    'source': source
-                })
-        except:
+            if feed.entries:
+                for entry in feed.entries[:3]:
+                    summary = clean_html(entry.get('summary', '') or entry.get('description', ''))
+                    if summary:
+                        tech_articles.append({
+                            'title': entry.get('title', 'No title'),
+                            'summary': summary,
+                            'link': entry.get('link', ''),
+                            'source': source
+                        })
+        except Exception as e:
+            print(f"Error fetching {source}: {e}")
             pass
     
     return world_articles, tech_articles
@@ -83,7 +91,7 @@ lines = ["每日簡報 — " + today, "", "=" * 50, ""]
 
 if world_articles or tech_articles:
     if world_articles:
-        lines.append("世界新聞\n")
+        lines.append("\n世界新聞\n")
         for i, article in enumerate(world_articles[:5], 1):
             lines.append(f"{i}. {article['title']}")
             lines.append(f"   來源: {article['source']}")
