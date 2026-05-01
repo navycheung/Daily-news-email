@@ -10,10 +10,13 @@ import re
 today = datetime.now().strftime('%a %d %b %Y')
 
 # Install required packages
-subprocess.run(['pip', 'install', 'feedparser', 'beautifulsoup4', '-q'], check=False)
+subprocess.run(['pip', 'install', 'feedparser', 'beautifulsoup4', 'google-trans-new', '-q'], check=False)
 
 import feedparser
 from bs4 import BeautifulSoup
+from google_trans_new import google_translator
+
+translator = google_translator()
 
 def clean_html(html_text):
     """Remove HTML tags and clean up text"""
@@ -21,10 +24,18 @@ def clean_html(html_text):
         return ""
     soup = BeautifulSoup(html_text, 'html.parser')
     text = soup.get_text()
-    # Remove extra whitespace
     text = re.sub(r'\s+', ' ', text).strip()
-    # Limit to 400 characters
     return text[:400]
+
+def translate_to_chinese(text):
+    """Translate text to Traditional Chinese"""
+    if not text:
+        return ""
+    try:
+        result = translator.translate(text, lang_src='en', lang_tgt='zh-TW')
+        return result
+    except:
+        return text
 
 def get_news_from_rss():
     """Fetch news from major news outlets RSS feeds"""
@@ -54,13 +65,12 @@ def get_news_from_rss():
                     summary = clean_html(entry.get('summary', '') or entry.get('description', ''))
                     if summary:
                         world_articles.append({
-                            'title': entry.get('title', 'No title'),
-                            'summary': summary,
+                            'title': translate_to_chinese(entry.get('title', 'No title')),
+                            'summary': translate_to_chinese(summary),
                             'link': entry.get('link', ''),
                             'source': source
                         })
         except Exception as e:
-            print(f"Error fetching {source}: {e}")
             pass
     
     # Fetch tech news
@@ -72,13 +82,12 @@ def get_news_from_rss():
                     summary = clean_html(entry.get('summary', '') or entry.get('description', ''))
                     if summary:
                         tech_articles.append({
-                            'title': entry.get('title', 'No title'),
-                            'summary': summary,
+                            'title': translate_to_chinese(entry.get('title', 'No title')),
+                            'summary': translate_to_chinese(summary),
                             'link': entry.get('link', ''),
                             'source': source
                         })
         except Exception as e:
-            print(f"Error fetching {source}: {e}")
             pass
     
     return world_articles, tech_articles
@@ -134,7 +143,7 @@ try:
     server.login(sender, password)
     server.send_message(message)
     server.quit()
-    print("Email sent with full article content")
+    print("Email sent with Traditional Chinese content")
 except Exception as e:
     print("ERROR: " + str(e))
     exit(1)
