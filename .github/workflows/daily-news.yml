@@ -9,6 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
+      - run: pip install feedparser requests beautifulsoup4
       - run: python3 send_news.py
         env:
           GMAIL_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
