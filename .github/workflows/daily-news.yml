@@ -1,0 +1,14 @@
+name: Daily News Brief
+on:
+  schedule:
+    - cron: '0 23 * * *'
+  workflow_dispatch:
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+      - run: python3 send_news.py
+        env:
+          GMAIL_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
