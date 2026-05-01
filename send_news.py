@@ -28,19 +28,28 @@ def clean_html(html_text):
 
 def get_news_from_rss():
     """Fetch news from major news outlets RSS feeds"""
-    feeds = {
+    world_feeds = {
         'BBC': 'http://feeds.bbc.co.uk/news/world/rss.xml',
         'Reuters': 'https://www.reutersagency.com/feed/?taxonomy=best-topics&output=rss',
-        'TechCrunch': 'http://feeds.feedburner.com/TechCrunch/',
+        'AP': 'https://apnews.com/hub/world-news/feed',
     }
     
-    articles = []
-    for source, url in feeds.items():
+    tech_feeds = {
+        'TechCrunch': 'http://feeds.feedburner.com/TechCrunch/',
+        'TheVerge': 'https://www.theverge.com/rss/index.xml',
+        'ArsTechnica': 'https://feeds.arstechnica.com/arstechnica/index',
+    }
+    
+    world_articles = []
+    tech_articles = []
+    
+    # Fetch world news
+    for source, url in world_feeds.items():
         try:
             feed = feedparser.parse(url)
-            for entry in feed.entries[:2]:
+            for entry in feed.entries[:3]:
                 summary = clean_html(entry.get('summary', 'No summary available'))
-                articles.append({
+                world_articles.append({
                     'title': entry.get('title', 'No title'),
                     'summary': summary,
                     'link': entry.get('link', ''),
@@ -49,27 +58,43 @@ def get_news_from_rss():
         except:
             pass
     
-    return articles
+    # Fetch tech news
+    for source, url in tech_feeds.items():
+        try:
+            feed = feedparser.parse(url)
+            for entry in feed.entries[:3]:
+                summary = clean_html(entry.get('summary', 'No summary available'))
+                tech_articles.append({
+                    'title': entry.get('title', 'No title'),
+                    'summary': summary,
+                    'link': entry.get('link', ''),
+                    'source': source
+                })
+        except:
+            pass
+    
+    return world_articles, tech_articles
 
 # Fetch real news
-all_articles = get_news_from_rss()
+world_articles, tech_articles = get_news_from_rss()
 
 # Build email body
 lines = ["每日簡報 — " + today, "", "=" * 50, ""]
 
-if all_articles:
-    lines.append("世界新聞\n")
-    for i, article in enumerate(all_articles[:5], 1):
-        lines.append(f"{i}. {article['title']}")
-        lines.append(f"   來源: {article['source']}")
-        lines.append(f"\n   {article['summary']}...")
-        if article['link']:
-            lines.append(f"\n   閱讀全文: {article['link']}")
-        lines.append("\n" + "-" * 50 + "\n")
+if world_articles or tech_articles:
+    if world_articles:
+        lines.append("世界新聞\n")
+        for i, article in enumerate(world_articles[:5], 1):
+            lines.append(f"{i}. {article['title']}")
+            lines.append(f"   來源: {article['source']}")
+            lines.append(f"\n   {article['summary']}...")
+            if article['link']:
+                lines.append(f"\n   閱讀全文: {article['link']}")
+            lines.append("\n" + "-" * 50 + "\n")
     
-    if len(all_articles) > 5:
+    if tech_articles:
         lines.append("\n科技新聞\n")
-        for i, article in enumerate(all_articles[5:10], 1):
+        for i, article in enumerate(tech_articles[:5], 1):
             lines.append(f"{i}. {article['title']}")
             lines.append(f"   來源: {article['source']}")
             lines.append(f"\n   {article['summary']}...")
@@ -101,7 +126,7 @@ try:
     server.login(sender, password)
     server.send_message(message)
     server.quit()
-    print("Email sent with cleaned article content")
+    print("Email sent with full article content")
 except Exception as e:
     print("ERROR: " + str(e))
     exit(1)
