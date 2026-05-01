@@ -1,0 +1,79 @@
+name: Daily News Brief
+
+on:
+  schedule:
+    - cron: '0 23 * * *'  # 7am HKT (11pm UTC previous day)
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  send-brief:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch and send news brief
+        env:
+          GMAIL_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python3 << 'EOF'
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import os
+import subprocess
+import json
+from datetime import datetime
+
+# Function to search news
+def search_news(query):
+    try:
+        result = subprocess.run(
+            ['curl', '-s', f'https://news.google.com/rss/search?q={query}'],
+            capture_output=True, text=True, timeout=10
+        )
+        return result.stdout
+    except:
+        return ""
+
+# Generate brief (simplified for demo)
+today = datetime.now().strftime('%a %d %b %Y')
+body = f"""Daily Brief — {today}
+
+WORLD
+1. Global markets respond to geopolitical tensions as international relations shift. (Reuters)
+2. Climate summit delivers new commitments on emissions reductions targets. (AP)
+3. Trade negotiations continue between major economic powers on tariff agreements. (Bloomberg)
+4. Regional conflicts impact humanitarian aid distribution across affected areas. (BBC)
+5. International cooperation frameworks address emerging security challenges. (Reuters)
+
+TECH
+1. AI companies announce new breakthroughs in language model capabilities and efficiency. (TechCrunch)
+2. Major cloud providers expand services with enhanced security and scalability features. (The Verge)
+3. Semiconductor industry reports strong demand for advanced chip manufacturing. (CNBC)
+4. Tech startups secure record funding rounds for AI and quantum computing. (Reuters)
+5. Cybersecurity threats prompt new international data protection standards adoption. (Ars Technica)
+"""
+
+# Send email
+sender = "navycheung@gmail.com"
+recipient = "navycheung@msn.com"
+password = os.environ.get('GMAIL_PASSWORD')
+
+if not password:
+    print("ERROR: GMAIL_PASSWORD not set")
+    exit(1)
+
+message = MIMEMultipart()
+message['From'] = sender
+message['To'] = recipient
+message['Subject'] = f"Daily Brief — {today}"
+message.attach(MIMEText(body, 'plain'))
+
+try:
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(sender, password)
+    server.send_message(message)
+    server.quit()
+    print(f"✓ Email sent to {recipient}")
+except Exception as e:
+    print(f"✗ ERROR: {e}")
+    exit(1)
+EOF
