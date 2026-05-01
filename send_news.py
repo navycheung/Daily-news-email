@@ -4,31 +4,29 @@ from email.mime.multipart import MIMEMultipart
 import os
 from datetime import datetime
 
-try:
-    from googletrans import Translator
-except:
-    os.system('pip install google-trans-new')
-    from googletrans import Translator
-
 today = datetime.now().strftime('%a %d %b %Y')
 
-# Longer news summaries in English
-body_en = f"""Daily Brief — {today}
+# Traditional Chinese news briefing
+body = f"""每日簡報 — {today}
 
-WORLD
-1. Global markets respond to geopolitical tensions as major economies implement new trade restrictions. Investors remain cautious amid escalating international disputes, while central banks consider policy adjustments to stabilize financial conditions and support economic growth in uncertain times.
+世界新聞
+1. 全球市場應對地緣政治緊張局勢，各大經濟體實施新的貿易限制措施。投資者對國際爭端升級保持謹慎態度，各國央行考慮調整政策以穩定金融狀況。
 
-2. The United Nations Climate Summit delivered significant commitments on emissions reductions from over 190 nations. Countries pledged to accelerate their transition to renewable energy and increase climate finance for developing nations, marking a substantial step forward in global environmental cooperation and sustainability efforts.
+2. 聯合國氣候峰會已從190多個國家獲得重大減排承諾。各國承諾加快向可再生能源轉變並增加對發展中國家的氣候融資，在全球環境合作上取得重大進展。
 
-3. International trade negotiations between major economic powers continue on tariff agreements and market access. Diplomats from Asia, Europe, and North America are working to establish fairer trade frameworks that balance economic interests while promoting long-term stability in global commerce.
+3. 主要經濟體之間繼續進行國際貿易談判，協商關稅協議和市場準入。來自亞洲、歐洲和北美的外交官正在努力建立公平的貿易框架。
 
-4. Regional humanitarian crises impact aid distribution across conflict-affected areas, with international organizations struggling to reach vulnerable populations. The situation demands urgent coordination between governments, NGOs, and UN agencies to ensure critical supplies reach those in need.
+4. 地區人道主義危機影響衝突地區的援助分配，國際組織難以接觸易受傷害的人群。需要政府、非政府組織和聯合國機構之間的緊急協調。
 
-5. International security frameworks are being strengthened to address emerging cyber threats and transnational challenges. Countries are collaborating on intelligence sharing and coordinated defense strategies to protect critical infrastructure and citizens from evolving security risks.
+5. 國際安全框架正在加強以應對新興網絡威脅。各國正在合作進行情報共享和協調防禦戰略以保護關鍵基礎設施。
 
-TECH
-1. Major AI companies announced groundbreaking advances in large language models with improved efficiency and reasoning capabilities. These new models demonstrate superior performance in complex problem-solving tasks while consuming significantly less computational resources, promising more accessible AI technology for businesses and individuals worldwide.
+科技新聞
+1. 主要人工智能公司發布了先進語言模型的突破性進展，具有更高效率和推理能力。新模型在複雜問題解決方面表現出色，同時消耗的計算資源明顯減少。
 
-2. Cloud service providers have unveiled enhanced security features and expanded global infrastructure to support enterprise clients. New compliance certifications and disaster recovery capabilities are helping organizations meet regulatory requirements while improving data protection and business continuity across multiple regions.
+2. 雲服務提供商推出了增強的安全功能和擴展的全球基礎設施以支持企業客戶。新的合規認證和災難恢復能力幫助組織滿足監管要求。
 
-3. The semiconductor industry reports strong demand for advanced chips as companies invest heavily in AI infrastructure and data centers. Supply chains have stabilized significantly, though
+3. 半導體行業報告對先進晶片的需求強勁，公司大力投資人工智能基礎設施和數據中心。供應鏈已大幅穩定，儘管地緣政治因素繼續影響定價和可用性。
+
+4. 科技初創公司已為人工智能和量子計算項目融資創造記錄。投資者對新興技術仍然熱情高漲，數十億資金流向開發下一代計算解決方案的公司。
+
+5. 政府和國際組織正在採用新的數據保護標準和網絡安全法規。這些框架旨在增強隱私權、防
