@@ -7,16 +7,48 @@ from datetime import datetime
 
 today = datetime.now().strftime('%a %d %b %Y')
 
-# Traditional Chinese news briefing - using concatenation instead of f-string
-body = "每日簡報 — " + today + """
+# Build the message line by line
+lines = [
+    "每日簡報 — " + today,
+    "",
+    "世界新聞",
+    "1. 全球市場應對地緣政治緊張局勢，各大經濟體實施新的貿易限制措施。投資者對國際爭端升級保持謹慎態度，各國央行考慮調整政策以穩定金融狀況。",
+    "2. 聯合國氣候峰會已從190多個國家獲得重大減排承諾。各國承諾加快向可再生能源轉變並增加對發展中國家的氣候融資，在全球環境合作上取得重大進展。",
+    "3. 主要經濟體之間繼續進行國際貿易談判，協商關稅協議和市場準入。來自亞洲、歐洲和北美的外交官正在努力建立公平的貿易框架。",
+    "4. 地區人道主義危機影響衝突地區的援助分配，國際組織難以接觸易受傷害的人群。需要政府、非政府組織和聯合國機構之間的緊急協調。",
+    "5. 國際安全框架正在加強以應對新興網絡威脅。各國正在合作進行情報共享和協調防禦戰略以保護關鍵基礎設施。",
+    "",
+    "科技新聞",
+    "1. 主要人工智能公司發布了先進語言模型的突破性進展，具有更高效率和推理能力。新模型在複雜問題解決方面表現出色，同時消耗的計算資源明顯減少。",
+    "2. 雲服務提供商推出了增強的安全功能和擴展的全球基礎設施以支持企業客戶。新的合規認證和災難恢復能力幫助組織滿足監管要求。",
+    "3. 半導體行業報告對先進晶片的需求強勁，公司大力投資人工智能基礎設施和數據中心。供應鏈已大幅穩定，儘管地緣政治因素繼續影響定價和可用性。",
+    "4. 科技初創公司已為人工智能和量子計算項目融資創造記錄。投資者對新興技術仍然熱情高漲，數十億資金流向開發下一代計算解決方案的公司。",
+    "5. 政府和國際組織正在採用新的數據保護標準和網絡安全法規。這些框架旨在增強隱私權、防止未經授權的數據訪問。"
+]
 
-世界新聞
-1. 全球市場應對地緣政治緊張局勢，各大經濟體實施新的貿易限制措施。投資者對國際爭端升級保持謹慎態度，各國央行考慮調整政策以穩定金融狀況。
+body = "\n".join(lines)
 
-2. 聯合國氣候峰會已從190多個國家獲得重大減排承諾。各國承諾加快向可再生能源轉變並增加對發展中國家的氣候融資，在全球環境合作上取得重大進展。
+sender = "navycheung@gmail.com"
+recipient = "navycheung@msn.com"
+password = os.environ.get('GMAIL_PASSWORD')
 
-3. 主要經濟體之間繼續進行國際貿易談判，協商關稅協議和市場準入。來自亞洲、歐洲和北美的外交官正在努力建立公平的貿易框架。
+if not password:
+    print("ERROR: GMAIL_PASSWORD not set")
+    exit(1)
 
-4. 地區人道主義危機影響衝突地區的援助分配，國際組織難以接觸易受傷害的人群。需要政府、非政府組織和聯合國機構之間的緊急協調。
+message = MIMEMultipart('alternative')
+message['From'] = sender
+message['To'] = recipient
+message['Subject'] = "每日簡報 — " + today
+message.attach(MIMEText(body, 'plain', 'utf-8'))
 
-5. 國
+try:
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(sender, password)
+    server.send_message(message)
+    server.quit()
+    print("Email sent successfully")
+except Exception as e:
+    print("ERROR: " + str(e))
+    exit(1)
