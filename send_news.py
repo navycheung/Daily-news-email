@@ -5,13 +5,26 @@ from email.mime.multipart import MIMEMultipart
 import os
 from datetime import datetime
 import subprocess
-import json
+import re
 
 today = datetime.now().strftime('%a %d %b %Y')
 
-# Install required package
-subprocess.run(['pip', 'install', 'feedparser', '-q'], check=False)
+# Install required packages
+subprocess.run(['pip', 'install', 'feedparser', 'beautifulsoup4', '-q'], check=False)
+
 import feedparser
+from bs4 import BeautifulSoup
+
+def clean_html(html_text):
+    """Remove HTML tags and clean up text"""
+    if not html_text:
+        return ""
+    soup = BeautifulSoup(html_text, 'html.parser')
+    text = soup.get_text()
+    # Remove extra whitespace
+    text = re.sub(r'\s+', ' ', text).strip()
+    # Limit to 400 characters
+    return text[:400]
 
 def get_news_from_rss():
     """Fetch news from major news outlets RSS feeds"""
@@ -25,10 +38,11 @@ def get_news_from_rss():
     for source, url in feeds.items():
         try:
             feed = feedparser.parse(url)
-            for entry in feed.entries[:2]:  # Get top 2 from each source
+            for entry in feed.entries[:2]:
+                summary = clean_html(entry.get('summary', 'No summary available'))
                 articles.append({
                     'title': entry.get('title', 'No title'),
-                    'summary': entry.get('summary', 'No summary available')[:500],  # First 500 chars
+                    'summary': summary,
                     'link': entry.get('link', ''),
                     'source': source
                 })
@@ -41,28 +55,28 @@ def get_news_from_rss():
 all_articles = get_news_from_rss()
 
 # Build email body
-lines = ["每日簡報 — " + today, ""]
+lines = ["每日簡報 — " + today, "", "=" * 50, ""]
 
 if all_articles:
-    lines.append("世界新聞")
+    lines.append("世界新聞\n")
     for i, article in enumerate(all_articles[:5], 1):
-        lines.append(f"\n{i}. {article['title']}")
-        lines.append(f"來源: {article['source']}")
-        lines.append(f"\n{article['summary']}...")
+        lines.append(f"{i}. {article['title']}")
+        lines.append(f"   來源: {article['source']}")
+        lines.append(f"\n   {article['summary']}...")
         if article['link']:
-            lines.append(f"\n閱讀全文: {article['link']}")
-        lines.append("")
+            lines.append(f"\n   閱讀全文: {article['link']}")
+        lines.append("\n" + "-" * 50 + "\n")
     
-    lines.append("\n科技新聞")
-    for i, article in enumerate(all_articles[5:10], 1):
-        lines.append(f"\n{i}. {article['title']}")
-        lines.append(f"來源: {article['source']}")
-        lines.append(f"\n{article['summary']}...")
-        if article['link']:
-            lines.append(f"\n閱讀全文: {article['link']}")
-        lines.append("")
+    if len(all_articles) > 5:
+        lines.append("\n科技新聞\n")
+        for i, article in enumerate(all_articles[5:10], 1):
+            lines.append(f"{i}. {article['title']}")
+            lines.append(f"   來源: {article['source']}")
+            lines.append(f"\n   {article['summary']}...")
+            if article['link']:
+                lines.append(f"\n   閱讀全文: {article['link']}")
+            lines.append("\n" + "-" * 50 + "\n")
 else:
-    # Fallback to summary if RSS fails
     lines.append("Unable to fetch live news. Please check news sites directly.")
 
 body = "\n".join(lines)
@@ -87,7 +101,7 @@ try:
     server.login(sender, password)
     server.send_message(message)
     server.quit()
-    print("Email sent with full article content")
+    print("Email sent with cleaned article content")
 except Exception as e:
     print("ERROR: " + str(e))
     exit(1)
