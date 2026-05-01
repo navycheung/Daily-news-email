@@ -9,11 +9,10 @@ jobs:
   send-brief:
     runs-on: ubuntu-latest
     steps:
-      - name: Fetch and send news brief
+      - name: Send news brief email
         env:
           GMAIL_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-        run: |
-          python3 << 'EOF'
+        run: python3 -c "
           import smtplib
           from email.mime.text import MIMEText
           from email.mime.multipart import MIMEMultipart
@@ -21,7 +20,7 @@ jobs:
           from datetime import datetime
           
           today = datetime.now().strftime('%a %d %b %Y')
-          body = f"""Daily Brief — {today}
+          body = '''Daily Brief — ''' + today + '''
           
           WORLD
           1. Global markets respond to geopolitical tensions. (Reuters)
@@ -36,20 +35,20 @@ jobs:
           3. Semiconductor demand remains strong. (CNBC)
           4. Startups secure record funding. (Reuters)
           5. New data protection standards adopted. (Ars Technica)
-          """
+          '''
           
-          sender = "navycheung@gmail.com"
-          recipient = "navycheung@msn.com"
+          sender = 'navycheung@gmail.com'
+          recipient = 'navycheung@msn.com'
           password = os.environ.get('GMAIL_PASSWORD')
           
           if not password:
-              print("ERROR: GMAIL_PASSWORD not set")
+              print('ERROR: GMAIL_PASSWORD not set')
               exit(1)
           
           message = MIMEMultipart()
           message['From'] = sender
           message['To'] = recipient
-          message['Subject'] = f"Daily Brief — {today}"
+          message['Subject'] = 'Daily Brief — ' + today
           message.attach(MIMEText(body, 'plain'))
           
           try:
@@ -58,8 +57,8 @@ jobs:
               server.login(sender, password)
               server.send_message(message)
               server.quit()
-              print(f"✓ Email sent to {recipient}")
+              print('Email sent successfully')
           except Exception as e:
-              print(f"✗ ERROR: {e}")
+              print(f'ERROR: {e}')
               exit(1)
-          EOF
+          "
